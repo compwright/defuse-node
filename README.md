@@ -1,6 +1,6 @@
 # defuse-node
 
-Javascript port of defuse/php-encryption for Node.js.
+Javascript port of [defuse/php-encryption](https://github.com/defuse/php-encryption) for Node.js.
 
 > This is an unofficial port. The creators of defuse/php-encryption recommend libsodium for cross-platform use cases. Use this library at your own risk :bangbang:
 
