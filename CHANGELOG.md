@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.1](https://github.com/compwright/defuse-node/compare/v1.0.0...v1.0.1) (2023-04-12)
+
+
+### Bug Fixes
+
+* upgraded dependencies ([43e41ed](https://github.com/compwright/defuse-node/commit/43e41ed62f745bac98307dcb22d5cea3ab60b53a))
+
 ## 1.0.0 (2022-10-05)
 
 
