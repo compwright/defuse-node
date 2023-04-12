@@ -79,17 +79,55 @@ class Core {
   static get LEGACY_AUTHENTICATION_INFO_STRING() {
     return "DefusePHP|KeyForAuthentication";
   }
+  /**
+   * Computes the HKDF key derivation function specified in
+   * http://tools.ietf.org/html/rfc5869.
+   *
+   * @param string hash   Hash Function
+   * @param Buffer|String ikm    Initial Keying Material
+   * @param Number length How many bytes?
+   * @param Buffer|String info   What sort of key are we deriving?
+   * @param Buffer|String salt
+   *
+   * @return Buffer
+   */
   static HKDF(hash, ikm, length, info = "", salt = null) {
     return Buffer.from(hkdfSync(hash, ikm, salt || "", info, length));
   }
+  /**
+   * Checks if two equal-length strings are the same without leaking
+   * information through side channels.
+   *
+   * @param Buffer expected
+   * @param Buffer given
+   *
+   * @return bool
+   */
   static hashEquals(expected, given) {
     return timingSafeEqual(expected, given);
   }
+  /**
+   * Throws an exception if the condition is false.
+   *
+   * @param bool condition
+   * @param string message
+   *
+   * @throws EnvironmentIsBrokenException
+   */
   static ensureTrue(condition, message) {
     if (!condition) {
       throw new EnvironmentIsBrokenException(message);
     }
   }
+  /**
+   * Behaves roughly like the function substr() in PHP 7 does.
+   *
+   * @param Buffer buf
+   * @param Number start
+   * @param Number length
+   *
+   * @return Buffer
+   */
   static ourSubstr(buf, start, length) {
     if (length < 0) {
       throw new Error("Negative lengths are not supported with ourSubstr.");
@@ -99,6 +137,24 @@ class Core {
     }
     return buf.subarray(start, start + length);
   }
+  /**
+   * Computes the PBKDF2 password-based key derivation function.
+   *
+   * The PBKDF2 function is defined in RFC 2898. Test vectors can be found in
+   * RFC 6070. This implementation of PBKDF2 was originally created by Taylor
+   * Hornby, with improvements from http://www.variations-of-shadow.com/.
+   *
+   * @param string algorithm  The hash algorithm to use. Recommended: SHA256
+   * @param string password   The password.
+   * @param string salt       A salt that is unique to the password.
+   * @param int    count      Iteration count. Higher is better, but slower. Recommended: At least 1000.
+   * @param int    keyLength  The length of the derived key in bytes.
+   * @param bool   rawOutput  If true, the key is returned in raw binary format. Hex encoded otherwise.
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @return string A keyLength-byte key derived from the password and salt.
+   */
   static pbkdf2(algorithm, password, salt, count, keyLength, rawOutput = false) {
     if (typeof algorithm !== "string") {
       throw new Error(
@@ -174,6 +230,15 @@ class Encoding {
   static get SERIALIZE_HEADER_BYTES() {
     return 4;
   }
+  /**
+   * Remove trailing whitespace without table look-ups or branches.
+   *
+   * Calling this function may leak the length of the string as well as the
+   * number of trailing whitespace characters through side-channels.
+   *
+   * @param string str
+   * @returns string
+   */
   static trimTrailingWhitespace(str) {
     let length = str.length;
     if (length < 1) {
@@ -206,6 +271,45 @@ class Encoding {
     } while (prevLength !== length && length > 0);
     return strParts.join("").substring(0, length);
   }
+  /*
+   * SECURITY NOTE ON APPLYING CHECKSUMS TO SECRETS:
+   *
+   *      The checksum introduces a potential security weakness. For example,
+   *      suppose we apply a checksum to a key, and that an adversary has an
+   *      exploit against the process containing the key, such that they can
+   *      overwrite an arbitrary byte of memory and then cause the checksum to
+   *      be verified and learn the result.
+   *
+   *      In this scenario, the adversary can extract the key one byte at
+   *      a time by overwriting it with their guess of its value and then
+   *      asking if the checksum matches. If it does, their guess was right.
+   *      This kind of attack may be more easy to implement and more reliable
+   *      than a remote code execution attack.
+   *
+   *      This attack also applies to authenticated encryption as a whole, in
+   *      the situation where the adversary can overwrite a byte of the key
+   *      and then cause a valid ciphertext to be decrypted, and then
+   *      determine whether the MAC check passed or failed.
+   *
+   *      By using the full SHA256 hash instead of truncating it, I'm ensuring
+   *      that both ways of going about the attack are equivalently difficult.
+   *      A shorter checksum of say 32 bits might be more useful to the
+   *      adversary as an oracle in case their writes are coarser grained.
+   *
+   *      Because the scenario assumes a serious vulnerability, we don't try
+   *      to prevent attacks of this style.
+   */
+  /**
+   * INTERNAL USE ONLY: Applies a version header, applies a checksum, and
+   * then encodes a byte string into a range of printable ASCII characters.
+   *
+   * @param Buffer header
+   * @param Buffer bytes
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns string
+   */
   static saveBytesToChecksummedAsciiSafeString(header, bytes) {
     Core.ensureTrue(
       header.length === Encoding.SERIALIZE_HEADER_BYTES,
@@ -215,6 +319,18 @@ class Encoding {
     const checksum = createHash(Encoding.CHECKSUM_HASH_ALGO).update(message).digest();
     return Buffer.concat([message, checksum]).toString("hex");
   }
+  /**
+   * INTERNAL USE ONLY: Decodes, verifies the header and checksum, and returns
+   * the encoded byte string.
+   *
+   * @param Buffer expectedHeader
+   * @param String str
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws BadFormatException
+   *
+   * @returns Buffer
+   */
   static loadBytesFromChecksummedAsciiSafeString(expectedHeader, str) {
     Core.ensureTrue(
       expectedHeader.length === Encoding.SERIALIZE_HEADER_BYTES,
@@ -286,9 +402,30 @@ const _Key = class {
   static get KEY_BYTE_SIZE() {
     return 32;
   }
+  /**
+   * Creates new random key.
+   *
+   * @returns Key
+   * @throws EnvironmentIsBrokenException
+   */
   static createNewRandomKey() {
     return new _Key(randomBytes(_Key.KEY_BYTE_SIZE));
   }
+  /**
+   * Loads a Key from its encoded form.
+   *
+   * By default, this function will call Encoding.trimTrailingWhitespace()
+   * to remove trailing CR, LF, NUL, TAB, and SPACE characters, which are
+   * commonly appended to files when working with text editors.
+   *
+   * @param string savedKeyString
+   * @param bool doNotTrim (default: false)
+   *
+   * @throws BadFormatException
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns Key
+   */
   static loadFromAsciiSafeString(savedKeyString, doNotTrim = false) {
     if (!doNotTrim) {
       savedKeyString = Encoding.trimTrailingWhitespace(savedKeyString);
@@ -299,12 +436,24 @@ const _Key = class {
     );
     return new _Key(keyBytes);
   }
+  /**
+   * Encodes the Key into a string of printable ASCII characters.
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns string
+   */
   saveToAsciiSafeString() {
     return Encoding.saveBytesToChecksummedAsciiSafeString(
       _Key.KEY_CURRENT_VERSION,
       __privateGet$4(this, _keyBytes)
     );
   }
+  /**
+   * Gets the raw bytes of the key.
+   *
+   * @returns string
+   */
   getRawBytes() {
     return __privateGet$4(this, _keyBytes);
   }
@@ -368,6 +517,12 @@ var __privateSet$2 = (obj, member, value, setter) => {
 };
 var _secretType, _secret;
 const _KeyOrPassword = class {
+  /**
+   * Constructor for KeyOrPassword.
+   *
+   * @param Number secretType
+   * @param Key|String secret
+   */
   constructor(secretType, secret) {
     __privateAdd$3(this, _secretType, 0);
     __privateAdd$3(this, _secret, void 0);
@@ -390,12 +545,37 @@ const _KeyOrPassword = class {
   static get SECRET_TYPE_PASSWORD() {
     return 2;
   }
+  /**
+   * Initializes an instance of KeyOrPassword from a key.
+   *
+   * @param Key key
+   *
+   * @returns KeyOrPassword
+   */
   static createFromKey(key) {
     return new _KeyOrPassword(_KeyOrPassword.SECRET_TYPE_KEY, key);
   }
+  /**
+   * Initializes an instance of KeyOrPassword from a password.
+   *
+   * @param String password
+   *
+   * @return KeyOrPassword
+   */
   static createFromPassword(password) {
     return new _KeyOrPassword(_KeyOrPassword.SECRET_TYPE_PASSWORD, password);
   }
+  /**
+   * Derives authentication and encryption keys from the secret, using a slow
+   * key derivation function if the secret is a password.
+   *
+   * @param String salt
+   *
+   * @throws CryptoException
+   * @throws EnvironmentIsBrokenException
+   *
+   * @return DerivedKeys
+   */
   deriveKeys(salt) {
     Core.ensureTrue(
       salt.length === Core.SALT_BYTE_SIZE,
@@ -477,6 +657,11 @@ var __privateMethod$1 = (obj, member, method) => {
 };
 var _testState, _testEncryptDecrypt, testEncryptDecrypt_fn, _HKDFTestVector, HKDFTestVector_fn, _HMACTestVector, HMACTestVector_fn, _AESTestVector, AESTestVector_fn;
 const _RuntimeTests = class {
+  /**
+   * Runs the runtime tests.
+   *
+   * @throws EnvironmentIsBrokenException
+   */
   static runtimeTest() {
     var _a, _b, _c, _d;
     if (__privateGet$1(_RuntimeTests, _testState) === 1 || __privateGet$1(_RuntimeTests, _testState) === 2) {
@@ -534,9 +719,13 @@ testEncryptDecrypt_fn = function() {
   }
   const indicesToChange = [
     0,
+    // The header.
     Core.HEADER_VERSION_SIZE + 1,
+    // the salt
     Core.HEADER_VERSION_SIZE + Core.SALT_BYTE_SIZE + 1,
+    // the IV
     Core.HEADER_VERSION_SIZE + Core.SALT_BYTE_SIZE + Core.BLOCK_BYTE_SIZE + 1
+    // the ciphertext
   ];
   for (const index of indicesToChange) {
     try {
@@ -621,10 +810,35 @@ AESTestVector_fn = function() {
   const computedPlaintext = Crypto.plainDecrypt(expectedCiphertext, key, iv, Core.CIPHER_METHOD);
   Core.ensureTrue(Buffer$1.compare(computedPlaintext, expectedPlaintext) === 0);
 };
+/**
+ * High-level tests of Crypto operations.
+ *
+ * @throws EnvironmentIsBrokenException
+ */
 __privateAdd$2(RuntimeTests, _testEncryptDecrypt);
+/**
+ * Test HKDF against test vectors.
+ *
+ * @throws EnvironmentIsBrokenException
+ */
 __privateAdd$2(RuntimeTests, _HKDFTestVector);
+/**
+ * Test HMAC against test vectors.
+ *
+ * @throws EnvironmentIsBrokenException
+ */
 __privateAdd$2(RuntimeTests, _HMACTestVector);
+/**
+   * Test AES against test vectors.
+   *
+   * @throws EnvironmentIsBrokenException
+   * @return void
+   */
 __privateAdd$2(RuntimeTests, _AESTestVector);
+// 0: Tests haven't been run yet.
+// 1: Tests have passed.
+// 2: Tests are running right now.
+// 3: Tests have failed.
 __privateAdd$2(RuntimeTests, _testState, 0);
 
 var __accessCheck$1 = (obj, member, msg) => {
@@ -642,6 +856,18 @@ var __privateMethod = (obj, member, method) => {
 };
 var _encryptInternal, encryptInternal_fn, _decryptInternal, decryptInternal_fn, _verifyHMAC, verifyHMAC_fn;
 const _Crypto = class {
+  /**
+   * Encrypts a string with a Key.
+   *
+   * @param string plaintext
+   * @param Key    key
+   * @param boolean rawBinary
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws TypeError
+   *
+   * @returns Buffer|string
+   */
   static encrypt(plaintext, key, rawBinary = false) {
     var _a;
     if (typeof plaintext !== "string") {
@@ -662,6 +888,19 @@ const _Crypto = class {
     const ciphertext = __privateMethod(_a = _Crypto, _encryptInternal, encryptInternal_fn).call(_a, plaintext, KeyOrPassword.createFromKey(key), rawBinary);
     return rawBinary ? ciphertext : ciphertext.toString("hex");
   }
+  /**
+   * Encrypts a string with a password, using a slow key derivation function
+   * to make password cracking more expensive.
+   *
+   * @param string plaintext
+   * @param string password
+   * @param bool   rawBinary
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws TypeError
+   *
+   * @returns Buffer|string
+   */
   static encryptWithPassword(plaintext, password, rawBinary = false) {
     var _a;
     if (typeof plaintext !== "string") {
@@ -682,6 +921,19 @@ const _Crypto = class {
     const ciphertext = __privateMethod(_a = _Crypto, _encryptInternal, encryptInternal_fn).call(_a, plaintext, KeyOrPassword.createFromPassword(password), rawBinary);
     return rawBinary ? ciphertext : ciphertext.toString("hex");
   }
+  /**
+   * Decrypts a ciphertext to a string with a Key.
+   *
+   * @param Buffer|string ciphertext
+   * @param Key    key
+   * @param boolean rawBinary
+   *
+   * @throws TypeError
+   * @throws EnvironmentIsBrokenException
+   * @throws WrongKeyOrModifiedCiphertextException
+   *
+   * @returns string
+   */
   static decrypt(ciphertext, key, rawBinary = false) {
     var _a;
     if (rawBinary === false && typeof ciphertext !== "string") {
@@ -706,6 +958,20 @@ const _Crypto = class {
     }
     return __privateMethod(_a = _Crypto, _decryptInternal, decryptInternal_fn).call(_a, ciphertext, KeyOrPassword.createFromKey(key), rawBinary).toString();
   }
+  /**
+   * Decrypts a ciphertext to a string with a password, using a slow key
+   * derivation function to make password cracking more expensive.
+   *
+   * @param Buffer|string ciphertext
+   * @param string password
+   * @param bool   rawBinary
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws WrongKeyOrModifiedCiphertextException
+   * @throws TypeError
+   *
+   * @returns string
+   */
   static decryptWithPassword(ciphertext, password, rawBinary = false) {
     var _a;
     if (rawBinary === false && typeof ciphertext !== "string") {
@@ -730,6 +996,17 @@ const _Crypto = class {
     }
     return __privateMethod(_a = _Crypto, _decryptInternal, decryptInternal_fn).call(_a, ciphertext, KeyOrPassword.createFromPassword(password), rawBinary).toString();
   }
+  /**
+   * Raw unauthenticated encryption (insecure on its own).
+   *
+   * @param string plaintext
+   * @param Buffer key
+   * @param Buffer iv
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns Buffer
+   */
   static plainEncrypt(plaintext, key, iv) {
     const cipher = createCipheriv(Core.CIPHER_METHOD, key, iv);
     return Buffer$1.concat([
@@ -737,6 +1014,18 @@ const _Crypto = class {
       cipher.final()
     ]);
   }
+  /**
+   * Raw unauthenticated decryption (insecure on its own).
+   *
+   * @param string ciphertext
+   * @param Buffer key
+   * @param Buffer iv
+   * @param string cipherMethod
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns Buffer
+   */
   static plainDecrypt(ciphertext, key, iv, cipherMethod) {
     const decipher = createDecipheriv(cipherMethod, key, iv);
     return Buffer$1.concat([
@@ -823,8 +1112,40 @@ verifyHMAC_fn = function(expectedHmac, message, key) {
   const messageHmac = createHmac(Core.HASH_FUNCTION_NAME, key).update(message).digest();
   return Core.hashEquals(messageHmac, expectedHmac);
 };
+/**
+ * Encrypts a string with either a key or a password.
+ *
+ * @param string        plaintext
+ * @param KeyOrPassword secret
+ * @param bool          rawBinary
+ *
+ * @returns Buffer
+ */
 __privateAdd$1(Crypto, _encryptInternal);
+/**
+ * Decrypts a ciphertext to a string with either a key or a password.
+ *
+ * @param string        ciphertext
+ * @param KeyOrPassword secret
+ * @param bool          rawBinary
+ *
+ * @throws EnvironmentIsBrokenException
+ * @throws WrongKeyOrModifiedCiphertextException
+ *
+ * @returns Buffer
+ */
 __privateAdd$1(Crypto, _decryptInternal);
+/**
+ * Verifies an HMAC without leaking information through side-channels.
+ *
+ * @param Buffer expectedHmac
+ * @param string message
+ * @param Buffer key
+ *
+ * @throws EnvironmentIsBrokenException
+ *
+ * @returns bool
+ */
 __privateAdd$1(Crypto, _verifyHMAC);
 
 var __accessCheck = (obj, member, msg) => {
@@ -847,6 +1168,11 @@ var __privateSet = (obj, member, value, setter) => {
 };
 var _encryptedKey;
 const _KeyProtectedByPassword = class {
+  /**
+   * Constructor for KeyProtectedByPassword.
+   *
+   * @param string encryptedKey
+   */
   constructor(encryptedKey) {
     __privateAdd(this, _encryptedKey, "");
     __privateSet(this, _encryptedKey, encryptedKey);
@@ -854,6 +1180,15 @@ const _KeyProtectedByPassword = class {
   static get PASSWORD_KEY_CURRENT_VERSION() {
     return Buffer$1.from([222, 241, 0, 0]);
   }
+  /**
+   * Creates a random key protected by the provided password.
+   *
+   * @param string password
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns KeyProtectedByPassword
+   */
   static createRandomPasswordProtectedKey(password) {
     const innerKey = Key.createNewRandomKey();
     const encryptedKey = Crypto.encryptWithPassword(
@@ -863,6 +1198,15 @@ const _KeyProtectedByPassword = class {
     );
     return new _KeyProtectedByPassword(encryptedKey);
   }
+  /**
+   * Loads a KeyProtectedByPassword from its encoded form.
+   *
+   * @param string savedKeyString
+   *
+   * @throws BadFormatException
+   *
+   * @returns KeyProtectedByPassword
+   */
   static loadFromAsciiSafeString(savedKeyString) {
     const encryptedKey = Encoding.loadBytesFromChecksummedAsciiSafeString(
       _KeyProtectedByPassword.PASSWORD_KEY_CURRENT_VERSION,
@@ -870,12 +1214,30 @@ const _KeyProtectedByPassword = class {
     );
     return new _KeyProtectedByPassword(encryptedKey);
   }
+  /**
+   * Encodes the KeyProtectedByPassword into a string of printable ASCII
+   * characters.
+   *
+   * @throws EnvironmentIsBrokenException
+   *
+   * @returns string
+   */
   saveToAsciiSafeString() {
     return Encoding.saveBytesToChecksummedAsciiSafeString(
       _KeyProtectedByPassword.PASSWORD_KEY_CURRENT_VERSION,
       __privateGet(this, _encryptedKey)
     );
   }
+  /**
+   * Decrypts the protected key, returning an unprotected Key object that can
+   * be used for encryption and decryption.
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws WrongKeyOrModifiedCiphertextException
+   *
+   * @param string password
+   * @returns Key
+   */
   unlockKey(password) {
     try {
       const innerKeyEncoded = Crypto.decryptWithPassword(
@@ -893,6 +1255,17 @@ const _KeyProtectedByPassword = class {
       throw ex;
     }
   }
+  /**
+   * Changes the password.
+   *
+   * @param string currentPassword
+   * @param string newPassword
+   *
+   * @throws EnvironmentIsBrokenException
+   * @throws WrongKeyOrModifiedCiphertextException
+   *
+   * @returns KeyProtectedByPassword
+   */
   changePassword(currentPassword, newPassword) {
     const innerKey = this.unlockKey(currentPassword);
     const encryptedKey = Crypto.encryptWithPassword(
