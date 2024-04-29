@@ -1,6 +1,6 @@
 {
   "name": "defuse-node",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Javascript port of defuse/php-encryption",
   "author": {
     "name": "Jonathon Hill",
