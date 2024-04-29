@@ -389,7 +389,7 @@ var __privateSet$4 = (obj, member, value, setter) => {
   return value;
 };
 var _keyBytes;
-const _Key = class {
+const _Key = class _Key {
   constructor(bytes) {
     __privateAdd$5(this, _keyBytes, void 0);
     Core.ensureTrue(
@@ -460,8 +460,8 @@ const _Key = class {
     return __privateGet$4(this, _keyBytes);
   }
 };
-let Key = _Key;
 _keyBytes = new WeakMap();
+let Key = _Key;
 
 var __accessCheck$4 = (obj, member, msg) => {
   if (!member.has(obj))
@@ -518,7 +518,7 @@ var __privateSet$2 = (obj, member, value, setter) => {
   return value;
 };
 var _secretType, _secret;
-const _KeyOrPassword = class {
+const _KeyOrPassword = class _KeyOrPassword {
   /**
    * Constructor for KeyOrPassword.
    *
@@ -631,9 +631,9 @@ const _KeyOrPassword = class {
     throw new EnvironmentIsBrokenException("Bad secret type.");
   }
 };
-let KeyOrPassword = _KeyOrPassword;
 _secretType = new WeakMap();
 _secret = new WeakMap();
+let KeyOrPassword = _KeyOrPassword;
 
 var __accessCheck$2 = (obj, member, msg) => {
   if (!member.has(obj))
@@ -658,7 +658,7 @@ var __privateMethod$1 = (obj, member, method) => {
   return method;
 };
 var _testState, _testEncryptDecrypt, testEncryptDecrypt_fn, _HKDFTestVector, HKDFTestVector_fn, _HMACTestVector, HMACTestVector_fn, _AESTestVector, AESTestVector_fn;
-const _RuntimeTests = class {
+const _RuntimeTests = class _RuntimeTests {
   /**
    * Runs the runtime tests.
    *
@@ -694,7 +694,6 @@ const _RuntimeTests = class {
     __privateSet$1(_RuntimeTests, _testState, 1);
   }
 };
-let RuntimeTests = _RuntimeTests;
 _testState = new WeakMap();
 _testEncryptDecrypt = new WeakSet();
 testEncryptDecrypt_fn = function() {
@@ -817,31 +816,32 @@ AESTestVector_fn = function() {
  *
  * @throws EnvironmentIsBrokenException
  */
-__privateAdd$2(RuntimeTests, _testEncryptDecrypt);
+__privateAdd$2(_RuntimeTests, _testEncryptDecrypt);
 /**
  * Test HKDF against test vectors.
  *
  * @throws EnvironmentIsBrokenException
  */
-__privateAdd$2(RuntimeTests, _HKDFTestVector);
+__privateAdd$2(_RuntimeTests, _HKDFTestVector);
 /**
  * Test HMAC against test vectors.
  *
  * @throws EnvironmentIsBrokenException
  */
-__privateAdd$2(RuntimeTests, _HMACTestVector);
+__privateAdd$2(_RuntimeTests, _HMACTestVector);
 /**
    * Test AES against test vectors.
    *
    * @throws EnvironmentIsBrokenException
    * @return void
    */
-__privateAdd$2(RuntimeTests, _AESTestVector);
+__privateAdd$2(_RuntimeTests, _AESTestVector);
 // 0: Tests haven't been run yet.
 // 1: Tests have passed.
 // 2: Tests are running right now.
 // 3: Tests have failed.
-__privateAdd$2(RuntimeTests, _testState, 0);
+__privateAdd$2(_RuntimeTests, _testState, 0);
+let RuntimeTests = _RuntimeTests;
 
 var __accessCheck$1 = (obj, member, msg) => {
   if (!member.has(obj))
@@ -857,7 +857,7 @@ var __privateMethod = (obj, member, method) => {
   return method;
 };
 var _encryptInternal, encryptInternal_fn, _decryptInternal, decryptInternal_fn, _verifyHMAC, verifyHMAC_fn;
-const _Crypto = class {
+const _Crypto = class _Crypto {
   /**
    * Encrypts a string with a Key.
    *
@@ -1036,7 +1036,6 @@ const _Crypto = class {
     ]);
   }
 };
-let Crypto = _Crypto;
 _encryptInternal = new WeakSet();
 encryptInternal_fn = function(plaintext, secret, rawBinary) {
   RuntimeTests.runtimeTest();
@@ -1123,7 +1122,7 @@ verifyHMAC_fn = function(expectedHmac, message, key) {
  *
  * @returns Buffer
  */
-__privateAdd$1(Crypto, _encryptInternal);
+__privateAdd$1(_Crypto, _encryptInternal);
 /**
  * Decrypts a ciphertext to a string with either a key or a password.
  *
@@ -1136,7 +1135,7 @@ __privateAdd$1(Crypto, _encryptInternal);
  *
  * @returns Buffer
  */
-__privateAdd$1(Crypto, _decryptInternal);
+__privateAdd$1(_Crypto, _decryptInternal);
 /**
  * Verifies an HMAC without leaking information through side-channels.
  *
@@ -1148,7 +1147,8 @@ __privateAdd$1(Crypto, _decryptInternal);
  *
  * @returns bool
  */
-__privateAdd$1(Crypto, _verifyHMAC);
+__privateAdd$1(_Crypto, _verifyHMAC);
+let Crypto = _Crypto;
 
 var __accessCheck = (obj, member, msg) => {
   if (!member.has(obj))
@@ -1169,7 +1169,7 @@ var __privateSet = (obj, member, value, setter) => {
   return value;
 };
 var _encryptedKey;
-const _KeyProtectedByPassword = class {
+const _KeyProtectedByPassword = class _KeyProtectedByPassword {
   /**
    * Constructor for KeyProtectedByPassword.
    *
@@ -1279,8 +1279,8 @@ const _KeyProtectedByPassword = class {
     return this;
   }
 };
-let KeyProtectedByPassword = _KeyProtectedByPassword;
 _encryptedKey = new WeakMap();
+let KeyProtectedByPassword = _KeyProtectedByPassword;
 
 exports.Crypto = Crypto;
 exports.Exception = index;
