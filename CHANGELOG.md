@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.1](https://github.com/compwright/defuse-node/compare/v2.0.0...v2.0.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* Fix import and export paths ([2a66fb5](https://github.com/compwright/defuse-node/commit/2a66fb5c191abda31b6845a992b729b039323f0a))
+
 ## [2.0.0](https://github.com/compwright/defuse-node/compare/v1.0.2...v2.0.0) (2026-09-09)
 
 
