@@ -1,5 +1,6 @@
 # defuse-node
 
+[![All Tests](https://github.com/compwright/defuse-node/actions/workflows/nodejs.yml/badge.svg)](https://github.com/compwright/defuse-node/actions/workflows/nodejs.yml)
 [![Download Status](https://img.shields.io/npm/dm/defuse-node.svg?style=flat-square)](https://www.npmjs.com/package/defuse-node)
 [![Sponsor on GitHub](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&link=https://github.com/sponsors/compwright)](https://github.com/sponsors/compwright)
 
