@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { Buffer } from 'buffer'
-import { Core } from '../src/Core'
+import { Buffer } from 'node:buffer'
+import { Core } from '../src/Core.js'
 
 describe('Core', () => {
   describe('ourSubstr()', () => {

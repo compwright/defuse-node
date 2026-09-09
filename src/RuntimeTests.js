@@ -1,10 +1,10 @@
-import { Buffer } from 'buffer'
-import { createHmac, getCiphers } from 'crypto'
-import { Core } from './Core'
-import { Crypto } from './Crypto'
-import { Key } from './Key'
-import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException'
-import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException'
+import { Buffer } from 'node:buffer'
+import { createHmac, getCiphers } from 'node:crypto'
+import { Core } from './Core.js'
+import { Crypto } from './Crypto.js'
+import { Key } from './Key.js'
+import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException.js'
+import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException.js'
 
 export class RuntimeTests {
   // 0: Tests haven't been run yet.

@@ -1,11 +1,11 @@
-import { Buffer } from 'buffer'
-import { randomBytes, createHmac, createCipheriv, createDecipheriv } from 'crypto'
-import { Core } from './Core'
-import { Key } from './Key'
-import { KeyOrPassword } from './KeyOrPassword'
-import { RuntimeTests } from './RuntimeTests'
-import { BadFormatException } from './Exception/BadFormatException'
-import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException'
+import { Buffer } from 'node:buffer'
+import { randomBytes, createHmac, createCipheriv, createDecipheriv } from 'node:crypto'
+import { Core } from './Core.js'
+import { Key } from './Key.js'
+import { KeyOrPassword } from './KeyOrPassword.js'
+import { RuntimeTests } from './RuntimeTests.js'
+import { BadFormatException } from './Exception/BadFormatException.js'
+import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException.js'
 
 export class Crypto {
   /**

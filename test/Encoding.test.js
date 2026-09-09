@@ -1,8 +1,8 @@
 import { describe, expect, test } from '@jest/globals'
-import { randomInt, randomBytes } from 'crypto'
-import { Encoding } from '../src/Encoding'
-import { Core } from '../src/Core'
-import { BadFormatException } from '../src/Exception/BadFormatException'
+import { randomInt, randomBytes } from 'node:crypto'
+import { Encoding } from '../src/Encoding.js'
+import { Core } from '../src/Core.js'
+import { BadFormatException } from '../src/Exception/BadFormatException.js'
 
 describe('Encoding', () => {
   test('incorrect checksum', () => {

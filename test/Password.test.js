@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals'
-import { KeyProtectedByPassword } from '../src/KeyProtectedByPassword'
-import { WrongKeyOrModifiedCiphertextException } from '../src/Exception/WrongKeyOrModifiedCiphertextException'
-import { BadFormatException } from '../src/Exception/BadFormatException'
+import { KeyProtectedByPassword } from '../src/KeyProtectedByPassword.js'
+import { WrongKeyOrModifiedCiphertextException } from '../src/Exception/WrongKeyOrModifiedCiphertextException.js'
+import { BadFormatException } from '../src/Exception/BadFormatException.js'
 
 describe('Password', () => {
   test('right password', () => {

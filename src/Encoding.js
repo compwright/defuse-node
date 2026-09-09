@@ -1,6 +1,6 @@
-import { Core } from './Core'
-import { BadFormatException } from './Exception/BadFormatException'
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
+import { Core } from './Core.js'
+import { BadFormatException } from './Exception/BadFormatException.js'
 
 export class Encoding {
   static get CHECKSUM_BYTE_SIZE () {

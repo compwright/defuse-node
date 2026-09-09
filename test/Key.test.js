@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { Key } from '../src/Key'
-import { BadFormatException } from '../src/Exception/BadFormatException'
+import { Key } from '../src/Key.js'
+import { BadFormatException } from '../src/Exception/BadFormatException.js'
 
 describe('Key', () => {
   test('create new random key', () => {

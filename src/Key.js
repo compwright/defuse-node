@@ -1,6 +1,6 @@
-import { randomBytes } from 'crypto'
-import { Core } from './Core'
-import { Encoding } from './Encoding'
+import { randomBytes } from 'node:crypto'
+import { Core } from './Core.js'
+import { Encoding } from './Encoding.js'
 
 export class Key {
   static get KEY_CURRENT_VERSION () {

@@ -1,11 +1,11 @@
-import { Buffer } from 'buffer'
-import { createHash } from 'crypto'
-import { Core } from './Core'
-import { Crypto } from './Crypto'
-import { Encoding } from './Encoding'
-import { Key } from './Key'
-import { BadFormatException } from './Exception/BadFormatException'
-import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException'
+import { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
+import { Core } from './Core.js'
+import { Crypto } from './Crypto.js'
+import { Encoding } from './Encoding.js'
+import { Key } from './Key.js'
+import { BadFormatException } from './Exception/BadFormatException.js'
+import { WrongKeyOrModifiedCiphertextException } from './Exception/WrongKeyOrModifiedCiphertextException.js'
 
 export class KeyProtectedByPassword {
   static get PASSWORD_KEY_CURRENT_VERSION () {

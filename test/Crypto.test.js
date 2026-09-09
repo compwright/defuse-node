@@ -1,10 +1,10 @@
 import { describe, expect, test } from '@jest/globals'
-import { randomBytes } from 'crypto'
-import { Core } from '../src/Core'
-import { Crypto } from '../src/Crypto'
-import { Key } from '../src/Key'
-import { WrongKeyOrModifiedCiphertextException } from '../src/Exception/WrongKeyOrModifiedCiphertextException'
-import { EnvironmentIsBrokenException } from '../src/Exception/EnvironmentIsBrokenException'
+import { randomBytes } from 'node:crypto'
+import { Core } from '../src/Core.js'
+import { Crypto } from '../src/Crypto.js'
+import { Key } from '../src/Key.js'
+import { WrongKeyOrModifiedCiphertextException } from '../src/Exception/WrongKeyOrModifiedCiphertextException.js'
+import { EnvironmentIsBrokenException } from '../src/Exception/EnvironmentIsBrokenException.js'
 
 describe('Crypto', () => {
   // Test for issue #165 -- encrypting then decrypting empty string fails.

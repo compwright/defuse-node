@@ -1,5 +1,5 @@
 import { hkdfSync, pbkdf2Sync, timingSafeEqual } from 'crypto'
-import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException'
+import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException.js'
 
 export class Core {
   static get HEADER_VERSION_SIZE () {

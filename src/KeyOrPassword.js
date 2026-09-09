@@ -1,8 +1,8 @@
-import { createHash } from 'crypto'
-import { Core } from './Core'
-import { Key } from './Key'
-import { DerivedKeys } from './DerivedKeys'
-import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException'
+import { createHash } from 'node:crypto'
+import { Core } from './Core.js'
+import { Key } from './Key.js'
+import { DerivedKeys } from './DerivedKeys.js'
+import { EnvironmentIsBrokenException } from './Exception/EnvironmentIsBrokenException.js'
 
 export class KeyOrPassword {
   static get PBKDF2_ITERATIONS () {
