@@ -15,7 +15,7 @@ If you would like to contribute any missing part, feel free to open a pull reque
 
 ## Requirements
 
-Node.js 16+ with OpenSSL
+Node.js 24+ with OpenSSL
 
 ## Installation
 

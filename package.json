@@ -21,24 +21,12 @@
     "url": "https://github.com/compwright/defuse-node.git"
   },
   "type": "module",
+  "main": "src/index.js",
   "engines": {
-    "node": ">= 16"
+    "node": ">= 24"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "files": [
-    "dist"
-  ],
   "devDependencies": {
     "jest": "latest",
-    "standard": "latest",
-    "standard-version": "latest",
-    "unbuild": "latest"
+    "standard": "latest"
   }
 }
